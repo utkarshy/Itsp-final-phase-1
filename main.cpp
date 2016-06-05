@@ -24,6 +24,7 @@ int thresh = 100;
 int max_thresh = 255;
 RNG rng(12345);
 Mat src;
+Mat sourcenew;
 
 
 Point polypoints[10][4];
@@ -35,7 +36,7 @@ int main()
 
 
 
-
+//cout<<"1"<<endl;
 
 
 
@@ -45,7 +46,8 @@ Ptr<BackgroundSubtractorMOG2> pmog2;
 pmog2=createBackgroundSubtractorMOG2(50,16,true);//creating background subtractor with shadow detection on
 
 
-VideoCapture Cap("6.mp4");
+
+VideoCapture Cap("4.mp4");
 
 
 
@@ -84,7 +86,7 @@ if(waitKey(0)=='y')
 namedWindow("original",WINDOW_NORMAL);
 namedWindow("detecting",WINDOW_NORMAL);
 
-
+cout<<"2"<<endl;
 while(1)
 {
 
@@ -93,30 +95,36 @@ if(!Cap.read(frame))
     cout<<"failed"<<endl;
 }
 
+cout<<"3"<<endl;
 
 Drawpolygons();
 
-
+cout<<"4"<<endl;
 
 cvtColor(frame,frame,CV_BGR2GRAY);
-Mat sourcenew;
 
-for(int z=0;z<30;z++)
+
+for(int z=0;z<5;z++)
 {
     bilateralFilter(frame,sourcenew,3,3,3,BORDER_DEFAULT);
+    blur(sourcenew,sourcenew,Size(3,3),Point(-1,-1));
 }
 //cvtColor(frame,frame,CV_BGR2GRAY);
+cout<<"5"<<endl;
 
     pmog2->apply(sourcenew,mask,-1);
 
-
+cout<<"6"<<endl;
 dilate(mask,mask,Mat(),Point(-1,-1),3);
+
+
 
 blur(src,src,Size(3,3),Point(-1,-1));
 
-  createTrackbar( " Canny thresh:","Contours", &thresh, max_thresh, thresh_callback );
+  //createTrackbar( " Canny thresh:","Contours", &thresh, max_thresh, thresh_callback );
+cout<<"7"<<endl;
   thresh_callback( 0, 0);
-
+cout<<"8"<<endl;
     imshow("original",sourcenew);
     imshow("detecting",mask);
 
@@ -224,7 +232,7 @@ void Drawpolygons()
 
 int lineType=8;
   int npt[] = { 4 };
-7
+
 for(int i=0;i<number_of_polygons;i++)
 {
 
@@ -312,10 +320,12 @@ void thresh_callback(int, void* )
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchy;
 
+   Rect bounding_rect;
+
   /// Detect edges using canny
   Canny( src, canny_output, thresh, thresh*2, 3 );
 
-  dilate(canny_output,canny_output,Mat(),Point(-1,-1),2);
+  dilate(canny_output,canny_output,Mat(),Point(-1,-1),1);
 
   /// Find contours
   findContours( canny_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
@@ -325,9 +335,20 @@ void thresh_callback(int, void* )
   for( size_t i = 0; i< contours.size(); i++ )
      {
        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-       drawContours( drawing,contours,i,Scalar(255, 0, 0), CV_FILLED,LINE_8,hierarchy );
+       double a=contourArea( contours[i],false);
+       if(a>1000)
+       {
 
+
+ drawContours( drawing,contours,i,Scalar(255, 0, 0), CV_FILLED,LINE_8,hierarchy );
+
+ bounding_rect=boundingRect(contours[i]);
+ rectangle(sourcenew, bounding_rect,  Scalar(0,255,0),6, 8,0);
+
+       }
     }
+
+
 
   /// Show in a window
   namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
