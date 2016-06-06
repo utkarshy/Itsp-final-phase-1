@@ -36,7 +36,6 @@ int main()
 
 
 
-//cout<<"1"<<endl;
 
 
 
@@ -86,7 +85,7 @@ if(waitKey(0)=='y')
 namedWindow("original",WINDOW_NORMAL);
 namedWindow("detecting",WINDOW_NORMAL);
 
-cout<<"2"<<endl;
+
 while(1)
 {
 
@@ -95,13 +94,13 @@ if(!Cap.read(frame))
     cout<<"failed"<<endl;
 }
 
-cout<<"3"<<endl;
+
 
 Drawpolygons();
 
-cout<<"4"<<endl;
 
-cvtColor(frame,frame,CV_BGR2GRAY);
+
+//cvtColor(frame,frame,CV_BGR2GRAY);
 
 
 for(int z=0;z<5;z++)
@@ -110,11 +109,11 @@ for(int z=0;z<5;z++)
     blur(sourcenew,sourcenew,Size(3,3),Point(-1,-1));
 }
 //cvtColor(frame,frame,CV_BGR2GRAY);
-cout<<"5"<<endl;
+
 
     pmog2->apply(sourcenew,mask,-1);
 
-cout<<"6"<<endl;
+
 dilate(mask,mask,Mat(),Point(-1,-1),3);
 
 
@@ -122,10 +121,11 @@ dilate(mask,mask,Mat(),Point(-1,-1),3);
 blur(src,src,Size(3,3),Point(-1,-1));
 
   //createTrackbar( " Canny thresh:","Contours", &thresh, max_thresh, thresh_callback );
-cout<<"7"<<endl;
+
+  cout<<"*";
   thresh_callback( 0, 0);
-cout<<"8"<<endl;
-    imshow("original",sourcenew);
+cout<<"#";
+    imshow("original",frame);
     imshow("detecting",mask);
 
     if(waitKey(30)==27)
@@ -319,6 +319,9 @@ void thresh_callback(int, void* )
   Mat canny_output;
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchy;
+  //vector<Point> center;
+
+   int no_of_contours_in_this_critera=0;
 
    Rect bounding_rect;
 
@@ -328,26 +331,47 @@ void thresh_callback(int, void* )
   dilate(canny_output,canny_output,Mat(),Point(-1,-1),1);
 
   /// Find contours
-  findContours( canny_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+  findContours( canny_output, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE, Point(0, 0) );
 
   /// Draw contours
   Mat drawing = Mat::zeros( canny_output.size(), CV_8UC1 );
+
+  vector<Moments> mu(1000);
   for( size_t i = 0; i< contours.size(); i++ )
-     {
+{
+
+
        Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
        double a=contourArea( contours[i],false);
-       if(a>1000)
+       if(a>3000)
        {
 
 
  drawContours( drawing,contours,i,Scalar(255, 0, 0), CV_FILLED,LINE_8,hierarchy );
 
  bounding_rect=boundingRect(contours[i]);
- rectangle(sourcenew, bounding_rect,  Scalar(0,255,0),6, 8,0);
+ rectangle(frame, bounding_rect,  Scalar(0,255,0),6, 8,0);
 
-       }
-    }
 
+
+mu[no_of_contours_in_this_critera]=moments(contours[i],true);
+no_of_contours_in_this_critera++;
+
+
+}
+
+}
+
+
+
+
+
+vector<Point2f> mc(no_of_contours_in_this_critera);
+  for( int i = 0; i < no_of_contours_in_this_critera; i++ )
+    {
+    mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+  circle(frame,mc[i],4,Scalar(255,0,0),2,LINE_8,0);
+  }
 
 
   /// Show in a window
