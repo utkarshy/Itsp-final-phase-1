@@ -4,6 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
+#include<fstream>
 
 
 using namespace cv;
@@ -364,16 +365,25 @@ no_of_contours_in_this_critera++;
 
 
 
+ofstream myfile("output.txt");
+if(myfile.is_open())
+{
+
+myfile<<no_of_contours_in_this_critera<<"\n";
 
 
-vector<Point2f> mc(no_of_contours_in_this_critera);
+vector<Point> mc(no_of_contours_in_this_critera);
   for( int i = 0; i < no_of_contours_in_this_critera; i++ )
     {
-    mc[i] = Point2f( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+
+    mc[i] = Point( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+  myfile<<mc[i].x<<" "<<mc[i].y<<"\n";
   circle(frame,mc[i],4,Scalar(255,0,0),2,LINE_8,0);
   }
 
 
+}
+myfile.close();
   /// Show in a window
   namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
   threshold(drawing,drawing,1,255,0);
