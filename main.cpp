@@ -12,7 +12,7 @@ using namespace std;
 
 
 /// Function headers
-void applyfilters();
+//void applyfilters();
 void parametersMOG2(Ptr<BackgroundSubtractorMOG2>);
 void drawpoly();
 void CallBackFunc(int, int , int , int , void*);
@@ -23,7 +23,7 @@ void thresh_callback(int, void*);
 ///for contouring
 int thresh = 100;
 int max_thresh = 255;
-RNG rng(12345);
+//RNG rng(12345);
 Mat src;
 Mat sourcenew;
 
@@ -47,7 +47,7 @@ pmog2=createBackgroundSubtractorMOG2(50,16,true);//creating background subtracto
 
 
 
-VideoCapture Cap("4.mp4");
+VideoCapture Cap("12.mp4");
 
 
 
@@ -57,6 +57,7 @@ VideoCapture Cap("4.mp4");
  }
 
 
+
 parametersMOG2(pmog2);
 
 
@@ -64,6 +65,8 @@ parametersMOG2(pmog2);
 
 if(Cap.read(frame))
 {
+
+    cout<<frame.cols<<" "<<frame.rows;
    drawpoly();
 }
 else
@@ -90,23 +93,27 @@ namedWindow("detecting",WINDOW_NORMAL);
 while(1)
 {
 
+
+
 if(!Cap.read(frame))
 {
     cout<<"failed"<<endl;
 }
+//cout<<frame.size;
+
 
 
 
 Drawpolygons();
 
-
+resize(frame,frame,Size(),0.3,0.3,CV_INTER_LINEAR);
 
 //cvtColor(frame,frame,CV_BGR2GRAY);
 
-
-for(int z=0;z<5;z++)
+bilateralFilter(frame,sourcenew,3,3,3,BORDER_DEFAULT);
+for(int z=0;z<10;z++)
 {
-    bilateralFilter(frame,sourcenew,3,3,3,BORDER_DEFAULT);
+
     blur(sourcenew,sourcenew,Size(3,3),Point(-1,-1));
 }
 //cvtColor(frame,frame,CV_BGR2GRAY);
@@ -123,13 +130,13 @@ blur(src,src,Size(3,3),Point(-1,-1));
 
   //createTrackbar( " Canny thresh:","Contours", &thresh, max_thresh, thresh_callback );
 
-  cout<<"*";
+ // cout<<"*";
   thresh_callback( 0, 0);
-cout<<"#";
+//cout<<"#";
     imshow("original",frame);
     imshow("detecting",mask);
 
-    if(waitKey(30)==27)
+  if(waitKey(5)==27)
         return -1;
 
 }
@@ -182,7 +189,7 @@ void drawpoly()
 {
 
 
-namedWindow("select background",WINDOW_AUTOSIZE);
+namedWindow("select background",WINDOW_NORMAL);
 imshow("select background",frame);
 
 
@@ -247,7 +254,7 @@ fillPoly(frame,ppt,npt,1,Scalar(0,0,0),lineType );
 
 
 
-
+/*
 ///Blur REMOVE THIS FUNCTION
 void applyfilters(Mat frame)
 {
@@ -256,8 +263,7 @@ blur(frame,frame,Size(3,3),Point(-1,-1));
 
 
 }
-
-
+*/
 
 
 /// Tinkering with the parameters of MOG2 class
@@ -268,31 +274,30 @@ cout<<"getBackgroundRatio"<<pmog2->getBackgroundRatio()<<endl;
 
 pmog2->setBackgroundRatio(0.3);//double
 
-/*
 
 cout<<"getComplexityReductionThreshold"<<pmog2->getComplexityReductionThreshold ()<<endl ;
 pmog2->setComplexityReductionThreshold(0.05);   //double
 
 cout<<"getDetectShadows"<<pmog2->getDetectShadows () <<endl;
-pmog2->setDetectShadows ();    //bool
+//pmog2->setDetectShadows ();    //bool
 
 cout<<"getHistory"<<pmog2->getHistory() <<endl;
-pmog2->setHistory(); //int
+//pmog2->setHistory(); //int
 
 cout<<"getNMixtures"<<pmog2->getNMixtures()<<endl;
-pmog2->setNMixtures();//int
-*//*
+//pmog2->setNMixtures();//int
+
 cout<<"getShadowThreshold "<<pmog2->getShadowThreshold ()<<endl;
 pmog2->setShadowThreshold(0.00001);     //double
-*/
+
 cout<<"getShadowValue ()"<<pmog2->getShadowValue ()<<endl;
 pmog2->setShadowValue(0); //int
-/*
+
 cout<<"getVarInit"<<pmog2->getVarInit ()<<endl;
 pmog2->setVarInit(0.1);       //double
 
 cout<<"getVarInit"<<pmog2->getVarInit ()<<endl;
-*/
+
 cout<<"getVarMax "<<pmog2->getVarMax ()<<endl;
 pmog2->setVarMax(1);          //double
 
@@ -301,11 +306,11 @@ pmog2->setVarMin(255);            //double
 
 cout<<"getVarThreshold "<<pmog2->getVarThreshold ()<<endl;
 pmog2->setVarThreshold(50);             //double
-/*
-cout<<"getVarThresholdGen"<<pmog2->getVarThresholdGen ()<<endl;
-pmog2->setVarThresholdGen();  //double
 
-*/
+cout<<"getVarThresholdGen"<<pmog2->getVarThresholdGen ()<<endl;
+//pmog2->setVarThresholdGen();  //double
+
+
 
 }
 
@@ -320,7 +325,7 @@ void thresh_callback(int, void* )
   Mat canny_output;
   vector<vector<Point> > contours;
   vector<Vec4i> hierarchy;
-  //vector<Point> center;
+  vector<Point> center(100);
 
    int no_of_contours_in_this_critera=0;
 
@@ -342,9 +347,9 @@ void thresh_callback(int, void* )
 {
 
 
-       Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
+    //   Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
        double a=contourArea( contours[i],false);
-       if(a>3000)
+       if(a>1000)
        {
 
 
@@ -355,11 +360,14 @@ void thresh_callback(int, void* )
 
 
 
+
 mu[no_of_contours_in_this_critera]=moments(contours[i],true);
 no_of_contours_in_this_critera++;
 
 
 }
+
+
 
 }
 
@@ -372,18 +380,23 @@ if(myfile.is_open())
 myfile<<no_of_contours_in_this_critera<<"\n";
 
 
-vector<Point> mc(no_of_contours_in_this_critera);
+   vector<Point> mc(no_of_contours_in_this_critera);
+
   for( int i = 0; i < no_of_contours_in_this_critera; i++ )
     {
 
-    mc[i] = Point( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
-  myfile<<mc[i].x<<" "<<mc[i].y<<"\n";
-  circle(frame,mc[i],4,Scalar(255,0,0),2,LINE_8,0);
-  }
+   ///center
+   mc[i] = Point( mu[i].m10/mu[i].m00 , mu[i].m01/mu[i].m00 );
+    circle(frame,mc[i],4,Scalar(255,0,0),-1,LINE_8,0);
 
+
+  ///saving into file
+  myfile<<center[i].x<<" "<<center[i].y<<"\n";
+  }
 
 }
 myfile.close();
+
   /// Show in a window
   namedWindow( "Contours", CV_WINDOW_AUTOSIZE );
   threshold(drawing,drawing,1,255,0);
